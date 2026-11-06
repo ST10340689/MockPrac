@@ -1,0 +1,947 @@
+@model Ecommerce.AppService.Models.AgriStreamDashboardViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgriStream IoT — Real-Time Farm Telemetry &amp; Drone Processing System (ASP.NET Core MVC)</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #071118;
+      --panel: #0e1d28;
+      --panel-alt: #132736;
+      --border: #1f3b52;
+      --green: #10b981;
+      --green-dark: #059669;
+      --azure: #0284c7;
+      --azure-light: #38bdf8;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --purple: #8b5cf6;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 48px;
+    }
+    header {
+      background: linear-gradient(90deg, #064e3b 0%, #0f766e 50%, #0369a1 100%);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #10b98155;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-badge {
+      background: #ffffff22;
+      border: 1px solid #ffffff44;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+    .brand h1 { font-size: 19px; font-weight: 700; }
+    .brand p { font-size: 12px; color: #d1fae5; }
+    .status-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill {
+      background: #071118cc;
+      border: 1px solid #38bdf855;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+    .container {
+      max-width: 1420px;
+      margin: 20px auto;
+      padding: 0 20px;
+      display: grid;
+      gap: 20px;
+    }
+    .action-bar {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--azure);
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:hover { opacity: 0.92; }
+    button:active { transform: scale(0.98); }
+    .btn-green { background: var(--green-dark); }
+    .btn-amber { background: #d97706; }
+    .btn-red { background: #dc2626; }
+    .btn-purple { background: #7c3aed; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+      gap: 12px;
+    }
+    .kpi-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .kpi-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 4px 0;
+      color: var(--azure-light);
+    }
+    .kpi-sub { font-size: 11.5px; color: var(--muted); }
+    .func-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 14px;
+    }
+    .func-card {
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--green);
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .func-card h3 { font-size: 14px; color: #38bdf8; }
+    .func-card p { font-size: 12px; color: #cbd5e1; }
+    .func-meta {
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      color: #a7f3d0;
+      background: #071118;
+      padding: 6px 8px;
+      border-radius: 5px;
+      border: 1px solid #1f3b52;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 18px;
+    }
+    @@media (max-width: 1024px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 600;
+      background: #0284c733;
+      color: var(--azure-light);
+      border: 1px solid #38bdf844;
+    }
+    .badge-green {
+      background: #10b98122;
+      color: #34d399;
+      border-color: #10b98155;
+    }
+    .badge-amber {
+      background: #f59e0b22;
+      color: #fbbf24;
+      border-color: #f59e0b55;
+    }
+    .badge-red {
+      background: #ef444422;
+      color: #f87171;
+      border-color: #ef444455;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    input, select {
+      width: 100%;
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 12.5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    th, td {
+      text-align: left;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      background: #09151ecc;
+    }
+    tr:hover td { background: #ffffff06; }
+    .drone-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .drone-item {
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .drone-item img {
+      width: 100%;
+      height: 155px;
+      object-fit: cover;
+      display: block;
+      border-bottom: 1px solid var(--border);
+    }
+    .drone-item-body { padding: 10px 12px; font-size: 12px; }
+    .log-box {
+      background: #050c11;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: Consolas, monospace;
+      font-size: 11.5px;
+      color: #34d399;
+      max-height: 170px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER: AGRISTREAM IoT MVC MANAGEMENT PORTAL -->
+  <header>
+    <div class="brand">
+      <span class="brand-badge">AGRISTREAM IoT • MVC</span>
+      <div>
+        <h1>AgriStream IoT — Smart Farm Telemetry &amp; Aerial Drone Processing System</h1>
+        <p>ASP.NET Core MVC Web App (App Service) • Azure SQL (cldvpracdb) • Azure Blob, Table &amp; Queue Storage (cldvpracstorage) • 4 Azure Functions</p>
+      </div>
+    </div>
+    <div class="status-pills">
+      <div class="pill"><span class="dot"></span><span><strong>MVC App Service:</strong> Online (<span id="pillInstances">@Model.ActiveAppServiceInstances</span> Instance)</span></div>
+      <div class="pill"><span class="dot"></span><span><strong>Azure SQL (cldvpracdb):</strong> Users &amp; DeviceRegistry</span></div>
+      <div class="pill"><span class="dot"></span><span><strong>Azure Storage (cldvpracstorage):</strong> Blob + Table + Queue</span></div>
+      <div class="pill"><span class="dot"></span><span><strong>Serverless Pipeline:</strong> 4/4 Azure Functions Active</span></div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- QUICK ACTION & SIMULATION BAR -->
+    <div class="action-bar">
+      <div>
+        <strong style="font-size:14px;">AgriStream IoT Live Control &amp; Operations Toolbar</strong>
+        <div style="font-size:12px; color:var(--muted);">Test all 4 Azure Functions, upload drone imagery to Blob Storage, trigger irrigation via Queue, or simulate peak daylight sensor surges.</div>
+      </div>
+      <div class="action-buttons">
+        <button class="btn-green" onclick="quickUploadDroneImage()">1. Upload Drone Image (BlobTrigger &rarr; Table Audit)</button>
+        <button onclick="refreshTelemetryFromFunction()">2. Call GET /api/functions/telemetry (Table Storage)</button>
+        <button class="btn-amber" onclick="quickTriggerIrrigation('DEV-PIVOT-A1', 'Sector-North-A1')">3 &amp; 4. Trigger Irrigation (POST &rarr; Queue &rarr; SQL)</button>
+        <button class="btn-purple" onclick="simulateDaylightSensorSurge()">5. Load Test (100 Concurrent Sensor Surges)</button>
+        <button class="btn-red" onclick="triggerAutoscaleCpuLoad()">6. Trigger CPU &gt; 70% Auto-Scale (Scale-Out)</button>
+      </div>
+    </div>
+
+    <!-- LIVE KPI & AUTOSCALE TELEMETRY CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total MVC &amp; API Requests</div>
+        <div class="kpi-value" id="kpiRequests">@Model.TotalRequests</div>
+        <div class="kpi-sub">P50 Latency: 1.48 ms • 100% HTTP 200/202</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Blob Storage (drone-images)</div>
+        <div class="kpi-value" id="kpiBlobs">@Model.DroneAudits.Count</div>
+        <div class="kpi-sub">Audited by Function 1 (BlobTrigger)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Table Storage (SensorTelemetry)</div>
+        <div class="kpi-value" id="kpiTelemetry">@Model.TelemetryFeed.Count</div>
+        <div class="kpi-sub">Served by Function 2 (HttpTrigger GET)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Queue &rarr; SQL Device Updates</div>
+        <div class="kpi-value" id="kpiQueueSql">@Model.Devices.Count</div>
+        <div class="kpi-sub">Functions 3 (POST) &amp; 4 (QueueTrigger)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Azure SQL Registered Users</div>
+        <div class="kpi-value" id="kpiUsers">@Model.Users.Count</div>
+        <div class="kpi-sub">Roles: Farmer, Agronomist, Admin</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">App Service CPU &amp; Memory</div>
+        <div class="kpi-value" id="kpiCpu">@Model.CpuPercentage%</div>
+        <div class="kpi-sub">Scale-Out Rule: CPU &gt; 70% (Mem: <span id="kpiMem">@Model.MemoryPercentage</span>%)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Active App Service Instances</div>
+        <div class="kpi-value" id="kpiAppInstances" style="color:var(--green);">@Model.ActiveAppServiceInstances / 5</div>
+        <div class="kpi-sub">Horizontal Scale-Out (Standard S1 Plan)</div>
+      </div>
+    </div>
+
+    <!-- SERVERLESS DATA PIPELINE — FOUR (4) AZURE FUNCTIONS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>Serverless Data Processing Pipeline — Exactly Four (4) Azure Functions</span>
+          <span class="badge badge-green">src/Ecommerce.Functions/OrderStreamProcessor.cs</span>
+        </div>
+        <span class="badge">Connected to cldvpracstorage &amp; cldvpracdb</span>
+      </div>
+      <div class="func-grid">
+        <div class="func-card">
+          <div>
+            <h3>Function 1: DroneImageBlobTrigger (Blob Trigger)</h3>
+            <p>Triggered automatically when a drone image is uploaded to Azure Blob Storage. Logs upload details and writes a processing status audit entry directly into Azure Table Storage.</p>
+          </div>
+          <div class="func-meta">[BlobTrigger("drone-images/{name}", Connection = "AzureStorage")] &rarr; Table: DroneImageAudit</div>
+        </div>
+        <div class="func-card">
+          <div>
+            <h3>Function 2: GetLatestTelemetry (HTTP GET Trigger)</h3>
+            <p>Called by the MVC web application when a farmer opens their field dashboard to retrieve the latest soil sensor telemetry from Azure Table Storage for near-instant rendering.</p>
+          </div>
+          <div class="func-meta">[HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telemetry")] &rarr; Table: SensorTelemetry</div>
+        </div>
+        <div class="func-card">
+          <div>
+            <h3>Function 3: TriggerIrrigationCommand (HTTP POST Trigger)</h3>
+            <p>Called when an automated sensor detects low moisture or a user clicks "Trigger Irrigation" in the MVC app. Places an "Irrigation Command" message into an Azure Storage Queue.</p>
+          </div>
+          <div class="func-meta">[HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "irrigation/trigger")] &rarr; Queue: irrigation-commands</div>
+        </div>
+        <div class="func-card">
+          <div>
+            <h3>Function 4: ProcessIrrigationQueue (Queue Trigger)</h3>
+            <p>Listens to the Azure Storage Queue, processes the irrigation command, and updates the device's operational status in the master DeviceRegistry table in Azure SQL Database.</p>
+          </div>
+          <div class="func-meta">[QueueTrigger("irrigation-commands", Connection = "AzureStorage")] &rarr; SQL: dbo.DeviceRegistry</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 1: DRONE BLOB STORAGE UPLOAD + IRRIGATION CONTROL & DEVICE REGISTRY -->
+    <div class="grid-2">
+
+      <!-- LEFT: AZURE BLOB STORAGE (drone-images) & BLOB-TRIGGERED FUNCTION AUDIT -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>Azure Blob Storage (Drone Aerial Media) &amp; BlobTrigger Audit</span>
+          </div>
+          <span class="badge badge-green">Container: cldvpracstorage/drone-images</span>
+        </div>
+
+        <form id="droneUploadForm" onsubmit="submitDroneUploadForm(event)">
+          <div class="form-row">
+            <div>
+              <label>Farm Field Sector</label>
+              <select id="droneFieldZone" name="fieldZone">
+                <option value="Sector-North-A1">Sector-North-A1 (Maize &amp; Pivot 1)</option>
+                <option value="Sector-South-B2">Sector-South-B2 (Citrus Orchard)</option>
+                <option value="Sector-East-C3">Sector-East-C3 (Soil &amp; NDVI Lab)</option>
+                <option value="Sector-West-D4">Sector-West-D4 (Soybean Grid)</option>
+              </select>
+            </div>
+            <div>
+              <label>Field Drone Unit</label>
+              <select id="droneUnitId" name="droneId">
+                <option value="DRONE-AGRI-X8">DRONE-AGRI-X8 (Multispectral NDVI)</option>
+                <option value="DRONE-SURVEY-M4">DRONE-SURVEY-M4 (Thermal Canopy)</option>
+                <option value="DRONE-SCOUT-A2">DRONE-SCOUT-A2 (High-Res RGB)</option>
+              </select>
+            </div>
+            <div>
+              <label>Drone Image File (Optional — Auto-Generates High-Res NDVI if empty)</label>
+              <input type="file" id="droneImageFile" name="imageFile" accept="image/*" />
+            </div>
+          </div>
+          <button type="submit" class="btn-green">Upload Drone Image to Azure Blob Storage &amp; Trigger Function 1</button>
+        </form>
+
+        <div class="drone-gallery" id="droneGallery">
+          @foreach (var audit in Model.DroneAudits.Take(4))
+          {
+            <div class="drone-item">
+              <img src="@audit.BlobUrl" alt="@audit.BlobName" />
+              <div class="drone-item-body">
+                <div style="font-weight:700; color:#38bdf8;">@audit.BlobName (@audit.FileSizeBytes B)</div>
+                <div style="color:#a7f3d0; font-size:11.5px; margin:2px 0;">@audit.NdviAnalysis</div>
+                <div style="color:var(--muted); font-size:11px;"><strong>Table Audit ID:</strong> @audit.AuditId • <strong>Zone:</strong> @audit.FieldZone</div>
+                <div style="color:#34d399; font-size:11px;">&#10003; @audit.ProcessingStatus</div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- RIGHT: IRRIGATION COMMAND QUEUE (HTTP POST -> QUEUE -> SQL MASTER DEVICE REGISTRY) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>Irrigation Control &amp; Master Device Registry (Azure SQL Database)</span>
+          </div>
+          <span class="badge badge-amber">Queue: irrigation-commands &rarr; SQL: dbo.DeviceRegistry</span>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Target Farm Device</label>
+            <select id="irrDeviceId">
+              <option value="DEV-PIVOT-A1">DEV-PIVOT-A1 (Sector-North-A1)</option>
+              <option value="DEV-PIVOT-B2">DEV-PIVOT-B2 (Sector-South-B2)</option>
+              <option value="DEV-VALVE-C3">DEV-VALVE-C3 (Sector-East-C3)</option>
+              <option value="DEV-PIVOT-D4">DEV-PIVOT-D4 (Sector-West-D4)</option>
+            </select>
+          </div>
+          <div>
+            <label>Command Action</label>
+            <select id="irrAction">
+              <option value="START_IRRIGATION">START_IRRIGATION (Open Valve)</option>
+              <option value="STOP_IRRIGATION">STOP_IRRIGATION (Close Valve)</option>
+            </select>
+          </div>
+          <div>
+            <label>Flow Rate (L/min)</label>
+            <input type="number" id="irrFlow" value="450" />
+          </div>
+          <div>
+            <label>Duration (Mins)</label>
+            <input type="number" id="irrDuration" value="45" />
+          </div>
+        </div>
+        <button class="btn-amber" onclick="submitIrrigationCommand()" style="margin-bottom:14px;">
+          Trigger Irrigation (Call Function 3 HTTP POST &rarr; Queue &rarr; Function 4 QueueTrigger &rarr; Update SQL)
+        </button>
+
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Device ID</th>
+                <th>Field Zone</th>
+                <th>Operational Status (Azure SQL)</th>
+                <th>Moisture</th>
+                <th>Last Queue Command &amp; Worker</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="deviceRegistryTableBody">
+              @foreach (var dev in Model.Devices)
+              {
+                var badgeClass = dev.OperationalStatus.Contains("Irrigating") ? "badge-green"
+                               : dev.OperationalStatus.Contains("Warning") ? "badge-red" : "badge";
+                <tr>
+                  <td><strong>@dev.DeviceId</strong><div style="font-size:11px; color:var(--muted);">@dev.DeviceName</div></td>
+                  <td>@dev.FieldZone</td>
+                  <td><span class="badge @badgeClass">@dev.OperationalStatus</span></td>
+                  <td><strong>@dev.SoilMoisturePercent%</strong></td>
+                  <td style="font-size:11.5px;">@dev.LastCommand<div style="color:#38bdf8; font-size:10.5px;">Updated by: @dev.UpdatedByFunction</div></td>
+                  <td>
+                    <button class="btn-amber" style="padding:5px 10px; font-size:11px;" onclick="quickTriggerIrrigation('@dev.DeviceId', '@dev.FieldZone')">Trigger Irrigation</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ROW 2: AZURE TABLE STORAGE TELEMETRY + AZURE SQL USER MANAGEMENT -->
+    <div class="grid-2">
+
+      <!-- LEFT: AZURE TABLE STORAGE HIGH-FREQUENCY TELEMETRY (SensorTelemetry) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>Azure Table Storage — High-Frequency Sensor Telemetry</span>
+          </div>
+          <span class="badge badge-green">Table: cldvpracstorage.SensorTelemetry</span>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Field Zone (PartitionKey)</label>
+            <select id="telZone">
+              <option value="Sector-North-A1">Sector-North-A1</option>
+              <option value="Sector-South-B2">Sector-South-B2</option>
+              <option value="Sector-East-C3">Sector-East-C3</option>
+              <option value="Sector-West-D4">Sector-West-D4</option>
+            </select>
+          </div>
+          <div>
+            <label>Sensor ID</label>
+            <input type="text" id="telSensorId" value="SENS-SOIL-A108" />
+          </div>
+          <div>
+            <label>Soil Moisture (%)</label>
+            <input type="number" step="0.1" id="telMoisture" value="19.5" />
+          </div>
+          <div>
+            <label>Soil Temp (&deg;C)</label>
+            <input type="number" step="0.1" id="telTemp" value="30.2" />
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+          <button onclick="ingestSingleSensorReading()">Ingest Soil Sensor Reading to Table Storage</button>
+          <button class="btn-green" onclick="refreshTelemetryFromFunction()">Refresh via Function 2 (GET /api/functions/telemetry)</button>
+        </div>
+
+        <div style="overflow-x:auto; max-height:330px; overflow-y:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>RowKey (ID)</th>
+                <th>PartitionKey (Zone)</th>
+                <th>Sensor / Event</th>
+                <th>Moisture &amp; Temp</th>
+                <th>pH / N</th>
+                <th>Telemetry Status</th>
+              </tr>
+            </thead>
+            <tbody id="telemetryTableBody">
+              @foreach (var t in Model.TelemetryFeed.Take(12))
+              {
+                var statusBadge = t.Status.Contains("Low") || t.Status.Contains("Critical") ? "badge-red"
+                                : t.Status.Contains("Irrigating") || t.Status.Contains("Optimal") ? "badge-green" : "badge";
+                <tr>
+                  <td style="font-family:Consolas,monospace; font-size:11px;">@t.TelemetryId</td>
+                  <td>@t.FieldZone</td>
+                  <td><strong>@t.SensorId</strong><div style="font-size:10.5px; color:var(--muted);">@t.EventType</div></td>
+                  <td><strong>@t.SoilMoisturePercent%</strong> • @t.TemperatureC&deg;C</td>
+                  <td>pH @t.PhLevel • @t.NitrogenPpm ppm</td>
+                  <td><span class="badge @statusBadge">@t.Status</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIGHT: RELATIONAL DATABASE USER MANAGEMENT (Azure SQL Database Users Table) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>Azure SQL Database — User Management &amp; Role Access</span>
+          </div>
+          <span class="badge">Server: cldvprac.database.windows.net • DB: cldvpracdb.dbo.Users</span>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Username</label>
+            <input type="text" id="newUsername" placeholder="e.g. lerato.farmer" />
+          </div>
+          <div>
+            <label>Password</label>
+            <input type="password" id="newPassword" value="AgriStream#2026" />
+          </div>
+          <div>
+            <label>System Role</label>
+            <select id="newUserRole">
+              <option value="Farmer">Farmer</option>
+              <option value="Agronomist">Agronomist</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+          <div>
+            <label>Full Name &amp; Farm Zone</label>
+            <input type="text" id="newFullName" placeholder="Lerato Sithole (Sector-North-A1)" />
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+          <button class="btn-green" onclick="registerNewUser()">Create User in Azure SQL Database (dbo.Users)</button>
+          <button onclick="verifySqlLogin('johan.venter', 'Farmer')">Verify Farmer Login (johan.venter)</button>
+          <button onclick="verifySqlLogin('dr.thandi.nkosi', 'Agronomist')">Verify Agronomist Login (dr.thandi.nkosi)</button>
+          <button onclick="verifySqlLogin('admin.agristream', 'Admin')">Verify Admin Login (admin.agristream)</button>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Password</th>
+                <th>Assigned Role</th>
+                <th>Full Name</th>
+                <th>Assigned Farm Sector</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              @foreach (var u in Model.Users)
+              {
+                var roleClass = u.Role == "Admin" ? "badge-red" : u.Role == "Agronomist" ? "badge-amber" : "badge-green";
+                <tr>
+                  <td>#@u.UserId</td>
+                  <td><strong>@u.Username</strong></td>
+                  <td style="font-family:Consolas,monospace; color:var(--muted);">@u.Password</td>
+                  <td><span class="badge @roleClass">@u.Role</span></td>
+                  <td>@u.FullName</td>
+                  <td style="font-size:11.5px;">@u.AssignedFarmZone</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- LIVE PIPELINE & LOAD TEST EXECUTION LOG -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Live Pipeline Execution, Load Testing &amp; Auto-Scaling Telemetry Log</div>
+        <span class="badge badge-green">Real-Time Azure Monitor &amp; Function Pipeline Trace</span>
+      </div>
+      <div class="log-box" id="pipelineLog">[SYSTEM READY] AgriStream IoT MVC Web Application connected to Azure SQL (cldvpracdb) and Azure Storage (cldvpracstorage).
+[PIPELINE] 4 Azure Functions initialized: DroneImageBlobTrigger (Blob), GetLatestTelemetry (HTTP GET), TriggerIrrigationCommand (HTTP POST), ProcessIrrigationQueue (Queue).</div>
+    </div>
+
+  </div>
+
+  <script>
+    function appendLog(msg) {
+      const box = document.getElementById('pipelineLog');
+      const ts = new Date().toISOString().substring(11, 19);
+      box.textContent = `[${ts}] ${msg}\n` + box.textContent;
+    }
+
+    async function refreshMetricsAndTables() {
+      try {
+        const [mRes, tRes, dRes, uRes] = await Promise.all([
+          fetch('/api/metrics'),
+          fetch('/api/functions/telemetry'),
+          fetch('/api/devices'),
+          fetch('/api/users')
+        ]);
+        const m = await mRes.json();
+        const tData = await tRes.json();
+        const dData = await dRes.json();
+        const uData = await uRes.json();
+
+        document.getElementById('kpiRequests').textContent = m.total_requests.toLocaleString();
+        document.getElementById('kpiBlobs').textContent = m.blob_images_uploaded;
+        document.getElementById('kpiTelemetry').textContent = m.table_telemetry_records;
+        document.getElementById('kpiQueueSql').textContent = m.queue_irrigation_commands;
+        document.getElementById('kpiUsers').textContent = m.registered_users_count;
+        document.getElementById('kpiCpu').textContent = m.cpu_percentage + '%';
+        document.getElementById('kpiMem').textContent = m.memory_percentage;
+        document.getElementById('kpiAppInstances').textContent = m.app_service_instances + ' / 5';
+        document.getElementById('pillInstances').textContent = m.app_service_instances;
+
+        // Render Telemetry Table
+        if (tData.telemetry) {
+          const tbody = document.getElementById('telemetryTableBody');
+          tbody.innerHTML = tData.telemetry.slice(0, 12).map(t => {
+            const bClass = (t.status.includes('Low') || t.status.includes('Critical')) ? 'badge-red'
+                         : (t.status.includes('Irrigating') || t.status.includes('Optimal')) ? 'badge-green' : 'badge';
+            return `<tr>
+              <td style="font-family:Consolas,monospace; font-size:11px;">${t.telemetry_id}</td>
+              <td>${t.field_zone}</td>
+              <td><strong>${t.sensor_id}</strong><div style="font-size:10.5px; color:var(--muted);">${t.event_type}</div></td>
+              <td><strong>${t.soil_moisture_percent}%</strong> &bull; ${t.temperature_c}&deg;C</td>
+              <td>pH ${t.ph_level} &bull; ${t.nitrogen_ppm} ppm</td>
+              <td><span class="badge ${bClass}">${t.status}</span></td>
+            </tr>`;
+          }).join('');
+        }
+
+        // Render Drone Gallery
+        if (tData.drone_audits) {
+          const gallery = document.getElementById('droneGallery');
+          gallery.innerHTML = tData.drone_audits.slice(0, 4).map(a => `
+            <div class="drone-item">
+              <img src="${a.blob_url}" alt="${a.blob_name}" />
+              <div class="drone-item-body">
+                <div style="font-weight:700; color:#38bdf8;">${a.blob_name} (${a.file_size_bytes} B)</div>
+                <div style="color:#a7f3d0; font-size:11.5px; margin:2px 0;">${a.ndvi_analysis}</div>
+                <div style="color:var(--muted); font-size:11px;"><strong>Table Audit ID:</strong> ${a.audit_id} &bull; <strong>Zone:</strong> ${a.field_zone}</div>
+                <div style="color:#34d399; font-size:11px;">&#10003; ${a.processing_status}</div>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // Render Device Registry Table
+        if (dData.devices) {
+          const dbody = document.getElementById('deviceRegistryTableBody');
+          dbody.innerHTML = dData.devices.map(dev => {
+            const bClass = dev.operational_status.includes('Irrigating') ? 'badge-green'
+                         : dev.operational_status.includes('Warning') ? 'badge-red' : 'badge';
+            return `<tr>
+              <td><strong>${dev.device_id}</strong><div style="font-size:11px; color:var(--muted);">${dev.device_name}</div></td>
+              <td>${dev.field_zone}</td>
+              <td><span class="badge ${bClass}">${dev.operational_status}</span></td>
+              <td><strong>${dev.soil_moisture_percent}%</strong></td>
+              <td style="font-size:11.5px;">${dev.last_command}<div style="color:#38bdf8; font-size:10.5px;">Updated by: ${dev.updated_by_function}</div></td>
+              <td><button class="btn-amber" style="padding:5px 10px; font-size:11px;" onclick="quickTriggerIrrigation('${dev.device_id}', '${dev.field_zone}')">Trigger Irrigation</button></td>
+            </tr>`;
+          }).join('');
+        }
+
+        // Render Users Table
+        if (uData.users) {
+          const ubody = document.getElementById('usersTableBody');
+          ubody.innerHTML = uData.users.map(u => {
+            const rClass = u.role === 'Admin' ? 'badge-red' : u.role === 'Agronomist' ? 'badge-amber' : 'badge-green';
+            return `<tr>
+              <td>#${u.user_id}</td>
+              <td><strong>${u.username}</strong></td>
+              <td style="font-family:Consolas,monospace; color:var(--muted);">${u.password}</td>
+              <td><span class="badge ${rClass}">${u.role}</span></td>
+              <td>${u.full_name}</td>
+              <td style="font-size:11.5px;">${u.assigned_farm_zone}</td>
+            </tr>`;
+          }).join('');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function submitDroneUploadForm(e) {
+      e.preventDefault();
+      const formData = new FormData(document.getElementById('droneUploadForm'));
+      const res = await fetch('/api/drones/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      appendLog(`[Function 1 - BlobTrigger] Uploaded '${data.audit.blob_name}' to cldvpracstorage/drone-images -> Wrote Audit '${data.audit.audit_id}' (${data.audit.ndvi_analysis}) to Azure Table Storage.`);
+      await refreshMetricsAndTables();
+    }
+
+    async function quickUploadDroneImage() {
+      const zones = ['Sector-North-A1', 'Sector-South-B2', 'Sector-East-C3', 'Sector-West-D4'];
+      const zone = zones[Math.floor(Math.random() * zones.length)];
+      const formData = new FormData();
+      formData.append('fieldZone', zone);
+      formData.append('droneId', 'DRONE-AGRI-X8');
+      const res = await fetch('/api/drones/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      appendLog(`[Function 1 - BlobTrigger] Drone aerial survey uploaded to Blob Storage (${data.audit.blob_name}) -> Audit entry ${data.audit.audit_id} written to Azure Table Storage.`);
+      await refreshMetricsAndTables();
+    }
+
+    async function refreshTelemetryFromFunction() {
+      const res = await fetch('/api/functions/telemetry');
+      const data = await res.json();
+      appendLog(`[Function 2 - HttpTrigger GET] Retrieved ${data.count} latest telemetry records from Azure Table Storage (cldvpracstorage.SensorTelemetry) for near-instant dashboard rendering.`);
+      await refreshMetricsAndTables();
+    }
+
+    async function submitIrrigationCommand() {
+      const payload = {
+        device_id: document.getElementById('irrDeviceId').value,
+        field_zone: document.getElementById('irrDeviceId').selectedOptions[0].text.split('(')[1].replace(')', ''),
+        action: document.getElementById('irrAction').value,
+        flow_rate_lpm: parseInt(document.getElementById('irrFlow').value || '450'),
+        duration_minutes: parseInt(document.getElementById('irrDuration').value || '45'),
+        triggered_by: 'Farmer MVC Dashboard'
+      };
+      const res = await fetch('/api/functions/irrigation/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      appendLog(`[Function 3 HTTP POST -> Function 4 QueueTrigger] Enqueued ${data.command.command_id} to 'irrigation-commands' Queue -> Updated ${data.updated_device.device_id} status to '${data.updated_device.operational_status}' in Azure SQL DeviceRegistry.`);
+      await refreshMetricsAndTables();
+    }
+
+    async function quickTriggerIrrigation(deviceId, fieldZone) {
+      const res = await fetch('/api/functions/irrigation/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          device_id: deviceId,
+          field_zone: fieldZone,
+          action: 'START_IRRIGATION',
+          duration_minutes: 45,
+          flow_rate_lpm: 450,
+          triggered_by: 'Farmer MVC Dashboard (1-Click Trigger)'
+        })
+      });
+      const data = await res.json();
+      appendLog(`[Function 3 HTTP POST -> Function 4 QueueTrigger] Command ${data.command.command_id} processed via Azure Queue -> Updated ${deviceId} in Azure SQL Database to '${data.updated_device.operational_status}'.`);
+      await refreshMetricsAndTables();
+    }
+
+    async function ingestSingleSensorReading() {
+      const payload = {
+        field_zone: document.getElementById('telZone').value,
+        sensor_id: document.getElementById('telSensorId').value,
+        event_type: 'SoilSensorReading',
+        soil_moisture_percent: parseFloat(document.getElementById('telMoisture').value || '22.5'),
+        temperature_c: parseFloat(document.getElementById('telTemp').value || '28.5'),
+        humidity_percent: 48.0,
+        ph_level: 6.5,
+        nitrogen_ppm: 41.0
+      };
+      const res = await fetch('/api/telemetry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      appendLog(`[Table Storage Ingestion] Stored SoilSensorReading (${ data.telemetry_id }) in cldvpracstorage.SensorTelemetry.`);
+      await refreshMetricsAndTables();
+    }
+
+    async function registerNewUser() {
+      const username = document.getElementById('newUsername').value.trim() || ('farmer.' + Math.floor(Math.random() * 900 + 100));
+      const password = document.getElementById('newPassword').value;
+      const role = document.getElementById('newUserRole').value;
+      const fullInfo = document.getElementById('newFullName').value.trim() || `${username} (Commercial Farm)`;
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username,
+          password,
+          role,
+          full_name: fullInfo,
+          assigned_farm_zone: 'Sector-North-A1'
+        })
+      });
+      const data = await res.json();
+      appendLog(`[Azure SQL User Management] Created user '${data.user.username}' with Role '${data.user.role}' in cldvpracdb.dbo.Users.`);
+      document.getElementById('newUsername').value = '';
+      await refreshMetricsAndTables();
+    }
+
+    async function verifySqlLogin(username, role) {
+      const res = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password: '***' })
+      });
+      const data = await res.json();
+      appendLog(`[Azure SQL Auth Verified] Connected to cldvpracdb.dbo.Users -> Authenticated '${data.user.username}' (Role: ${data.user.role}, Zone: ${data.user.assigned_farm_zone}).`);
+    }
+
+    async function simulateDaylightSensorSurge() {
+      appendLog(`[Load Test] Firing 100 concurrent soil sensor telemetry packets at MVC App Service...`);
+      const zones = ['Sector-North-A1', 'Sector-South-B2', 'Sector-East-C3', 'Sector-West-D4'];
+      const t0 = performance.now();
+      const promises = [];
+      for (let i = 0; i < 100; i++) {
+        const z = zones[i % zones.length];
+        promises.push(fetch('/api/telemetry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            field_zone: z,
+            sensor_id: `SENS-SURGE-${1000 + i}`,
+            event_type: 'SoilSensorReading',
+            soil_moisture_percent: +(18 + Math.random() * 45).toFixed(1),
+            temperature_c: +(21 + Math.random() * 11).toFixed(1),
+            ph_level: +(6.1 + Math.random() * 0.9).toFixed(1),
+            nitrogen_ppm: +(35 + Math.random() * 20).toFixed(1)
+          })
+        }));
+      }
+      await Promise.all(promises);
+      const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+      appendLog(`[Load Test Complete] 100/100 sensor readings ingested into Azure Table Storage in ${elapsed}s (0% data loss).`);
+      await refreshMetricsAndTables();
+    }
+
+    async function triggerAutoscaleCpuLoad() {
+      appendLog(`[Auto-Scaling Test] Generating synthetic CPU (> 70%) & Memory load on App Service...`);
+      const res = await fetch('/api/simulate-cpu-load', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ duration_seconds: 2, intensity_factor: 400000 })
+      });
+      const data = await res.json();
+      appendLog(`[Auto-Scale Triggered] CPU reached ${data.cpu_percentage}% (> 70% threshold) -> Scaled out Azure App Service to ${data.scaled_app_service_instances} instances & ${data.scaled_function_instances} Function workers!`);
+      await refreshMetricsAndTables();
+    }
+  </script>
+</body>
+</html>

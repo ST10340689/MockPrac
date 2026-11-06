@@ -1,0 +1,79 @@
+// ==============================================================================
+// AGRISTREAM IoT: AZURE MONITOR & APPLICATION INSIGHTS KQL QUERIES
+// Real-Time Performance & Resource Utilization Monitoring During Peak Load
+// ==============================================================================
+
+// ------------------------------------------------------------------------------
+// 1. App Service CPU & Memory Utilization Over Time (Auto-Scale Evaluation)
+// ------------------------------------------------------------------------------
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.WEB" and MetricName in ("CpuPercentage", "MemoryPercentage")
+| summarize AvgUsage = avg(Average), MaxUsage = max(Maximum) by bin(TimeGenerated, 1m), MetricName, Resource
+| render timechart
+
+// ------------------------------------------------------------------------------
+// 2. MVC Web App & API Request Rate During Peak Daylight Sensor Load
+// ------------------------------------------------------------------------------
+requests
+| summarize 
+    TotalRequests = count(),
+    SuccessfulRequests = countif(success == true),
+    FailedRequests = countif(success == false),
+    Http429Throttled = countif(resultCode == "429"),
+    Http5xxErrors = countif(resultCode startswith "5")
+    by bin(timestamp, 1m)
+| render timechart
+
+// ------------------------------------------------------------------------------
+// 3. Request Latency Percentiles (p50, p90, p95, p99) Under Simulated Peak Load
+// ------------------------------------------------------------------------------
+requests
+| summarize 
+    p50_Latency = percentile(duration, 50),
+    p90_Latency = percentile(duration, 90),
+    p95_Latency = percentile(duration, 95),
+    p99_Latency = percentile(duration, 99),
+    Avg_Latency = avg(duration)
+    by bin(timestamp, 1m)
+| render timechart
+
+// ------------------------------------------------------------------------------
+// 4. Execution Telemetry for the 4 AgriStream IoT Azure Functions
+//    - DroneImageBlobTrigger (Blob Trigger)
+//    - GetLatestTelemetry (HTTP GET Trigger)
+//    - TriggerIrrigationCommand (HTTP POST Trigger)
+//    - ProcessIrrigationQueue (Queue Trigger)
+// ------------------------------------------------------------------------------
+requests
+| where operation_Name in ("DroneImageBlobTrigger", "GetLatestTelemetry", "TriggerIrrigationCommand", "ProcessIrrigationQueue")
+| summarize 
+    Executions = count(),
+    SuccessRate = round(100.0 * countif(success == true) / count(), 2),
+    AvgDurationMs = round(avg(duration), 2),
+    p95DurationMs = round(percentile(duration, 95), 2)
+    by FunctionName = operation_Name, bin(timestamp, 1m)
+| order by timestamp desc
+
+// ------------------------------------------------------------------------------
+// 5. Azure Storage (Blob, Table, Queue) Transactions & Latency
+// ------------------------------------------------------------------------------
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.STORAGE" and MetricName in ("Transactions", "SuccessE2ELatency", "Ingress", "Egress")
+| summarize TotalMetric = sum(Total), AvgLatencyMs = avg(Average) by bin(TimeGenerated, 1m), MetricName
+| render timechart
+
+// ------------------------------------------------------------------------------
+// 6. Azure SQL Database (Users & DeviceRegistry) DTU / vCore Utilization
+// ------------------------------------------------------------------------------
+AzureMetrics
+| where ResourceProvider == "MICROSOFT.SQL" and MetricName in ("cpu_percent", "dtu_consumption_percent", "connection_successful")
+| summarize AvgUtilization = avg(Average), MaxUtilization = max(Maximum) by bin(TimeGenerated, 1m), MetricName
+| render timechart
+
+// ------------------------------------------------------------------------------
+// 7. Auto-Scaling History & Scale-Out Events
+// ------------------------------------------------------------------------------
+AzureActivity
+| where OperationNameValue has "Microsoft.Insights/autoscalesettings" or OperationNameValue has "scale"
+| project TimeGenerated, Caller, OperationNameValue, ActivityStatusValue, Properties
+| order by TimeGenerated desc

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Ecommerce.StressTest": {
+      "commandName": "Project",
+      "commandLineArgs": "\"http://localhost:5000/api/orders\" 1000 50",
+      "dotnetRunMessages": true
+    }
+  }
+}

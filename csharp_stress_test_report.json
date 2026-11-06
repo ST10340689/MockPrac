@@ -1,0 +1,27 @@
+{
+  "platform": "AgriStream IoT Real-Time Farm Processing System",
+  "engine": "C# Parallel Load Testing Engine",
+  "timestamp": "2026-11-06T07:21:57.9042693Z",
+  "target_url": "http://127.0.0.1:5058/api/telemetry",
+  "configuration": {
+    "total_requests": 1000,
+    "concurrency": 50
+  },
+  "performance": {
+    "duration_seconds": 8.13,
+    "throughput_rps": 123.01,
+    "success_rate_percent": 100,
+    "status_codes": {
+      "202": 1000
+    },
+    "latency_ms": {
+      "min": 2.73,
+      "avg": 386.62,
+      "p50": 377.13,
+      "p90": 861.69,
+      "p95": 970.11,
+      "p99": 1019.71,
+      "max": 1226.61
+    }
+  }
+}
